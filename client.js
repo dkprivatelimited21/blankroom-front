@@ -1,12 +1,14 @@
 /* BlankRoom — client.js */
 
-// ── SOCKET INIT ──
-// On Vercel: BACKEND_URL is injected into index.html at build time.
-// Locally: defaults to same origin (relative).
+// ── SOCKET INIT with better Instagram compatibility ──
 const BACKEND = window.BACKEND_URL || '';
 const socket = io(BACKEND, {
   transports: ['websocket', 'polling'],
   withCredentials: true,
+  reconnection: true,
+  reconnectionAttempts: 5,
+  reconnectionDelay: 1000,
+  timeout: 20000,
 });
 
 // ── STATE ──
@@ -24,7 +26,13 @@ function showPage(id) {
   currentPage = id;
 }
 
-function appendMessage(boxId, who, text, cls) {
+function formatTime(timestamp) {
+  if (!timestamp) return '';
+  const date = new Date(timestamp);
+  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
+function appendMessage(boxId, who, text, cls, timestamp) {
   const box = document.getElementById(boxId);
   const msg = document.createElement('div');
   msg.className = 'msg ' + (cls || who);
@@ -34,8 +42,11 @@ function appendMessage(boxId, who, text, cls) {
   } else {
     const bubble = document.createElement('div');
     bubble.className = 'bubble';
+    
+    const timeSpan = document.createElement('span');
+    timeSpan.className = 'msg-time';
+    timeSpan.textContent = formatTime(timestamp);
 
-    // In group chat, show sender name above stranger bubbles
     if (cls === 'stranger' && boxId === 'messages-group') {
       const sender = document.createElement('div');
       sender.className = 'sender';
@@ -44,6 +55,7 @@ function appendMessage(boxId, who, text, cls) {
     }
 
     bubble.appendChild(document.createTextNode(text));
+    bubble.appendChild(timeSpan);
     msg.appendChild(bubble);
   }
 
@@ -58,6 +70,30 @@ function sysMsg(boxId, text) {
 function clearMessages(id) {
   document.getElementById(id).innerHTML = '';
 }
+
+// ── CONNECTION STATUS ──
+socket.on('connect', () => {
+  console.log('Connected to server');
+  if (currentPage === 'landing') {
+    // Auto-refresh rooms if on landing
+    if (chatMode === 'group') {
+      socket.emit('get_rooms');
+    }
+  }
+});
+
+socket.on('disconnect', () => {
+  sysMsg(currentPage === '1v1' ? 'messages-1v1' : 'messages-group', '⚠ Disconnected from server. Reconnecting...');
+});
+
+socket.on('reconnect', () => {
+  sysMsg(currentPage === '1v1' ? 'messages-1v1' : 'messages-group', '✅ Reconnected!');
+  if (chatMode === '1v1' && inPair) {
+    socket.emit('find_stranger');
+  } else if (chatMode === 'group' && currentRoom) {
+    socket.emit('join_room', { room: currentRoom });
+  }
+});
 
 // ── LANDING ──
 document.getElementById('btn-1v1').addEventListener('click', () => {
@@ -136,9 +172,9 @@ document.getElementById('btn-back-1v1').addEventListener('click', () => {
 document.getElementById('btn-report-1v1').addEventListener('click', () => openReport('1v1'));
 
 // ── 1v1 SOCKET EVENTS ──
-socket.on('searching', () => {
-  setStatus1v1('Searching for a stranger...');
-  sysMsg('messages-1v1', 'Looking for someone to chat with...');
+socket.on('searching', (data) => {
+  setStatus1v1(data.message || 'Searching for a stranger...');
+  sysMsg('messages-1v1', data.message || 'Looking for someone to chat with...');
 });
 
 socket.on('paired', (data) => {
@@ -150,9 +186,9 @@ socket.on('paired', (data) => {
 
 socket.on('message_1v1', (data) => {
   if (data.from === 'you') {
-    appendMessage('messages-1v1', nickname, data.text, 'you');
+    appendMessage('messages-1v1', nickname, data.text, 'you', data.timestamp);
   } else {
-    appendMessage('messages-1v1', 'Stranger', data.text, 'stranger');
+    appendMessage('messages-1v1', 'Stranger', data.text, 'stranger', data.timestamp);
   }
 });
 
@@ -178,14 +214,24 @@ socket.on('rooms_updated', (rooms) => {
 function renderRoomList(rooms) {
   const list = document.getElementById('room-list');
   list.innerHTML = '';
-  if (rooms.length === 0) {
+  
+  // Sort: permanent rooms first, then by count
+  const sorted = [...rooms].sort((a, b) => {
+    if (a.permanent && !b.permanent) return -1;
+    if (!a.permanent && b.permanent) return 1;
+    return b.count - a.count;
+  });
+  
+  if (sorted.length === 0) {
     list.innerHTML = '<div class="no-rooms">No active rooms. Create one above.</div>';
     return;
   }
-  rooms.forEach(r => {
+  
+  sorted.forEach(r => {
     const item = document.createElement('div');
     item.className = 'room-item';
-    item.innerHTML = `<span>${escHtml(r.name)} <span class="room-count">(${r.count})</span></span><button>Join</button>`;
+    const permBadge = r.permanent ? '<span class="perm-badge">📌</span>' : '';
+    item.innerHTML = `<span>${permBadge} ${escHtml(r.name)} <span class="room-count">(${r.count})</span></span><button>Join</button>`;
     item.querySelector('button').addEventListener('click', () => joinRoom(r.name));
     list.appendChild(item);
   });
@@ -222,7 +268,7 @@ socket.on('room_message', (data) => {
     sysMsg('messages-group', data.text);
   } else {
     const isMe = data.selfId === socket.id;
-    appendMessage('messages-group', isMe ? nickname : data.from, data.text, isMe ? 'you' : 'stranger');
+    appendMessage('messages-group', isMe ? nickname : data.from, data.text, isMe ? 'you' : 'stranger', data.timestamp);
   }
 });
 
@@ -282,7 +328,7 @@ document.getElementById('btn-cancel-report').addEventListener('click', () => {
   document.getElementById('report-modal').style.display = 'none';
 });
 
-socket.on('report_received', () => alert('Report submitted. Thank you.'));
+socket.on('report_received', (data) => alert(data.message || 'Report submitted. Thank you.'));
 
 document.getElementById('report-modal').addEventListener('click', (e) => {
   if (e.target === e.currentTarget) e.currentTarget.style.display = 'none';

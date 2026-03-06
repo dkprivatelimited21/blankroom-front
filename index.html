@@ -1,22 +1,41 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5494701951490201"
-     crossorigin="anonymous"></script>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>BlankRoom</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
+  <meta property="og:title" content="BlankRoom" />
+  <meta property="og:description" content="Anonymous chat. No tracking. No logs. Just talk." />
+  <meta property="og:image" content="https://blankroom.vercel.app/og-image.png" />
+  <meta property="og:url" content="https://blankroom.vercel.app" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="BlankRoom" />
+  <meta name="twitter:description" content="Anonymous chat. No tracking. No logs. Just talk." />
+  <title>BlankRoom - Anonymous Chat</title>
   <link rel="stylesheet" href="style.css" />
-<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-XXW222NL1Q"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-XXW222NL1Q');
-</script>
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <!-- Google tag (gtag.js) - Minimal, no personal data -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXW222NL1Q"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-XXW222NL1Q', {
+      'anonymize_ip': true,
+      'allow_google_signals': false,
+      'allow_ad_personalization_signals': false
+    });
+  </script>
+  <style>
+    /* Instagram/Twitter in-app browser fixes */
+    body {
+      -webkit-tap-highlight-color: transparent;
+      -webkit-touch-callout: none;
+      text-size-adjust: 100%;
+    }
+    input, button, textarea {
+      font-size: 16px; /* Prevents zoom on iOS */
+    }
+  </style>
 </head>
 <body>
 
@@ -27,7 +46,8 @@
     <p class="tagline">Anonymous. Temporary. Gone when you leave.</p>
 
     <div class="disclaimer">
-      Chats are anonymous and not stored. All messages disappear when you disconnect.
+      ⚠ No IP logging • No tracking • No message storage<br>
+      Chats disappear when you disconnect.
     </div>
 
     <div class="form-group">
@@ -40,8 +60,12 @@
     </div>
 
     <div class="btn-group">
-      <button class="btn" id="btn-1v1">Start 1v1 Chat</button>
-      <button class="btn" id="btn-group">Join Group Chat</button>
+      <button class="btn" id="btn-1v1">🎭 1v1 Chat</button>
+      <button class="btn" id="btn-group">👥 Group Chat</button>
+    </div>
+    
+    <div class="permanent-rooms">
+      <small>Permanent rooms: general • random • music • gaming • tech • sports</small>
     </div>
   </div>
 </div>
@@ -51,8 +75,8 @@
   <div class="chat-wrap">
     <div class="chat-header">
       <span class="logo-sm">Blank<span>Room</span></span>
-      <span id="status-1v1" class="status">Searching for a stranger...</span>
-      <button class="btn-link" id="btn-report-1v1">report</button>
+      <span id="status-1v1" class="status">Searching...</span>
+      <button class="btn-link" id="btn-report-1v1">🚩</button>
     </div>
 
     <div id="messages-1v1" class="messages-box"></div>
@@ -63,8 +87,8 @@
     </div>
 
     <div class="action-row">
-      <button class="btn btn-outline" id="btn-end-1v1">End Chat</button>
-      <button class="btn" id="btn-new-1v1">New Stranger</button>
+      <button class="btn btn-outline" id="btn-end-1v1">End</button>
+      <button class="btn" id="btn-new-1v1">Skip →</button>
       <button class="btn btn-outline" id="btn-back-1v1">← Back</button>
     </div>
   </div>
@@ -76,7 +100,7 @@
     <div class="chat-header">
       <span class="logo-sm">Blank<span>Room</span></span>
       <span id="status-group" class="status">Group Chat</span>
-      <button class="btn-link" id="btn-report-group">report</button>
+      <button class="btn-link" id="btn-report-group">🚩</button>
     </div>
 
     <!-- Room selector -->
@@ -85,7 +109,7 @@
         <input type="text" id="room-name-input" placeholder="Room name..." maxlength="30" autocomplete="off" />
         <button class="btn btn-sm" id="btn-join-room">Join</button>
       </div>
-      <div class="room-list-label">Active rooms:</div>
+      <div class="room-list-label">📌 Permanent rooms always active:</div>
       <div id="room-list"></div>
     </div>
 
@@ -121,31 +145,41 @@
   </div>
 </div>
 
-<!--
-  DEPLOYMENT NOTE:
-  When deploying frontend to Vercel (separate from backend on Render),
-  replace the BACKEND_URL below with your Render service URL.
-  Example: window.BACKEND_URL = 'https://blankroom-backend.onrender.com';
-
-  For local dev, leave it as '' (empty string = same origin).
--->
+<!-- CONFIGURATION -->
 <script>
-  window.BACKEND_URL = 'https://blankroom-server.onrender.com';
-  // ↑ Production example:
-  // window.BACKEND_URL = 'https://blankroom-backend.onrender.com';
+  // Auto-detect backend URL based on environment
+  (function() {
+    // For Vercel deployment, use your Render backend
+    // For local dev, use same origin
+    const isLocalhost = window.location.hostname === 'localhost' || 
+                        window.location.hostname === '127.0.0.1';
+    
+    window.BACKEND_URL = isLocalhost 
+      ? ''  // Same origin for local dev
+      : 'https://blankroom-server.onrender.com';  // Your Render backend
+      
+    console.log('Backend URL:', window.BACKEND_URL || '(same origin)');
+  })();
 </script>
 
-<!-- socket.io: loaded from backend when same-origin, or CDN when split-deployed -->
+<!-- Socket.io loader with fallback -->
 <script>
   (function() {
     const backend = window.BACKEND_URL || '';
+    // Try CDN first (better for Instagram), fallback to backend
+    if (!backend) {
+      // Already loaded from CDN at the top
+      return;
+    }
+    
+    // If we have a backend URL, also try to load from there as fallback
     const script = document.createElement('script');
-    script.src = backend
-      ? backend + '/socket.io/socket.io.js'
-      : '/socket.io/socket.io.js';
+    script.src = backend + '/socket.io/socket.io.js';
+    script.async = true;
     document.head.appendChild(script);
   })();
 </script>
+
 <script src="client.js" defer></script>
 </body>
 </html>
