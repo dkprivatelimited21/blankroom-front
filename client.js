@@ -19,6 +19,22 @@ let inPair = false;
 let currentRoom = null;
 let reportTarget = null;
 
+// ── RANDOM NAME GENERATOR ──
+const adjectives = ['Happy', 'Sleepy', 'Hungry', 'Clever', 'Brave', 'Swift', 'Wild', 'Calm', 'Bold', 'Wise', 'Kind', 'Bright'];
+const nouns = ['Panda', 'Tiger', 'Eagle', 'Fox', 'Wolf', 'Bear', 'Owl', 'Dolphin', 'Lion', 'Deer', 'Hawk', 'Falcon'];
+
+function generateRandomName() {
+  const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
+  const noun = nouns[Math.floor(Math.random() * nouns.length)];
+  const num = Math.floor(Math.random() * 100);
+  return `${adj}${noun}${num}`;
+}
+
+// Set default random name if input is empty
+function getEffectiveNickname(inputValue) {
+  return inputValue.trim() || generateRandomName();
+}
+
 // ── UTILS ──
 function showPage(id) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -101,8 +117,8 @@ document.getElementById('btn-1v1').addEventListener('click', () => {
     alert('You must confirm you are 18 or older.');
     return;
   }
-  const nick = document.getElementById('nickname-input').value.trim();
-  nickname = nick || 'You';
+  const inputNick = document.getElementById('nickname-input').value;
+  nickname = getEffectiveNickname(inputNick);
   socket.emit('set_nickname', { nickname });
   showPage('1v1');
   chatMode = '1v1';
@@ -114,8 +130,8 @@ document.getElementById('btn-group').addEventListener('click', () => {
     alert('You must confirm you are 18 or older.');
     return;
   }
-  const nick = document.getElementById('nickname-input').value.trim();
-  nickname = nick || 'Stranger';
+  const inputNick = document.getElementById('nickname-input').value;
+  nickname = getEffectiveNickname(inputNick);
   socket.emit('set_nickname', { nickname });
   showPage('group');
   chatMode = 'group';
@@ -206,14 +222,26 @@ socket.on('chat_ended', () => {
 });
 
 // ── GROUP CHAT ──
-socket.on('rooms_list', (rooms) => renderRoomList(rooms));
+socket.on('rooms_list', (rooms) => {
+  console.log('Received rooms:', rooms); // Debug log
+  renderRoomList(rooms);
+});
+
 socket.on('rooms_updated', (rooms) => {
-  if (currentPage === 'group' && !currentRoom) renderRoomList(rooms);
+  console.log('Rooms updated:', rooms); // Debug log
+  if (currentPage === 'group' && !currentRoom) {
+    renderRoomList(rooms);
+  }
 });
 
 function renderRoomList(rooms) {
   const list = document.getElementById('room-list');
   list.innerHTML = '';
+  
+  if (!rooms || rooms.length === 0) {
+    list.innerHTML = '<div class="no-rooms">No rooms available. Try creating one!</div>';
+    return;
+  }
   
   // Sort: permanent rooms first, then by count
   const sorted = [...rooms].sort((a, b) => {
@@ -222,16 +250,12 @@ function renderRoomList(rooms) {
     return b.count - a.count;
   });
   
-  if (sorted.length === 0) {
-    list.innerHTML = '<div class="no-rooms">No active rooms. Create one above.</div>';
-    return;
-  }
-  
   sorted.forEach(r => {
     const item = document.createElement('div');
     item.className = 'room-item';
     const permBadge = r.permanent ? '<span class="perm-badge">📌</span>' : '';
-    item.innerHTML = `<span>${permBadge} ${escHtml(r.name)} <span class="room-count">(${r.count})</span></span><button>Join</button>`;
+    const countDisplay = r.count > 0 ? `(${r.count})` : '(empty)';
+    item.innerHTML = `<span>${permBadge} ${escHtml(r.name)} <span class="room-count">${countDisplay}</span></span><button>Join</button>`;
     item.querySelector('button').addEventListener('click', () => joinRoom(r.name));
     list.appendChild(item);
   });
@@ -244,7 +268,10 @@ function joinRoom(name) {
 
 document.getElementById('btn-join-room').addEventListener('click', () => {
   const name = document.getElementById('room-name-input').value.trim();
-  if (!name) { alert('Enter a room name.'); return; }
+  if (!name) { 
+    alert('Enter a room name.'); 
+    return; 
+  }
   joinRoom(name);
 });
 
@@ -261,6 +288,9 @@ socket.on('room_joined', (data) => {
   document.getElementById('btn-leave-room').style.display = 'inline-block';
   document.getElementById('status-group').textContent = `#${data.room} (${data.count} online)`;
   clearMessages('messages-group');
+  
+  // Add a system message
+  sysMsg('messages-group', `You joined #${data.room}`);
 });
 
 socket.on('room_message', (data) => {
@@ -342,3 +372,6 @@ function escHtml(str) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
 }
+
+// Request room list on page load
+socket.emit('get_rooms');
