@@ -335,13 +335,11 @@ input[type="text"]:focus {
 }
 
 .msg {
-  max-width: 100%;
-  font-size: 0.94rem;
-  line-height: 1.6;
-  word-break: break-word;
-  animation: msgIn 0.2s ease both;
-  position: relative;
-  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 12px;
+  max-width: 80%;
+  animation: msgIn 0.2s ease forwards;
 }
 
 @keyframes msgIn {
@@ -350,53 +348,71 @@ input[type="text"]:focus {
 }
 
 .msg.you {
+  align-self: flex-end;
+  margin-left: auto;
+}
+
+.msg.stranger {
+  align-self: flex-start;
+}
+
+.message-container {
   display: flex;
-  justify-content: flex-end;
+  flex-direction: column;
+  width: 100%;
+}
+
+.msg-sender {
+  font-size: 0.75rem;
+  color: var(--rose);
+  margin-bottom: 2px;
+  margin-left: 4px;
+  font-weight: 500;
+}
+
+.bubble {
+  padding: 10px 14px;
+  border-radius: 18px;
+  background: var(--surface2);
+  color: var(--text-soft);
+  word-break: break-word;
+  line-height: 1.5;
+  max-width: 100%;
 }
 
 .msg.you .bubble {
   background: linear-gradient(135deg, #3d1020, #2a0d16);
   color: #f0d0d8;
-  padding: 10px 16px;
-  border-radius: 18px 18px 4px 18px;
-  max-width: 72%;
-  font-size: 0.93rem;
   border: 1px solid rgba(194,65,90,0.3);
-  box-shadow: 0 2px 12px rgba(194,65,90,0.15);
-}
-
-.msg.stranger {
-  display: flex;
-  justify-content: flex-start;
 }
 
 .msg.stranger .bubble {
   background: var(--surface2);
-  color: var(--text-soft);
-  padding: 10px 16px;
-  border-radius: 18px 18px 18px 4px;
-  max-width: 72%;
-  font-size: 0.93rem;
   border: 1px solid var(--border);
 }
 
-.msg.stranger .sender {
+.msg-time {
   font-size: 0.7rem;
-  font-weight: 500;
-  color: var(--rose);
-  margin-bottom: 4px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-top: 4px;
+  margin-left: 8px;
+  margin-right: 8px;
+}
+
+.msg.you .msg-time {
+  text-align: right;
 }
 
 .msg.system {
   text-align: center;
-  color: var(--text-dim);
-  font-size: 0.76rem;
-  font-weight: 300;
-  letter-spacing: 0.05em;
-  padding: 4px 0;
+  color: var(--text-muted);
+  font-size: 0.8rem;
   font-style: italic;
+  margin: 8px auto;
+  padding: 4px 12px;
+  background: rgba(194,65,90,0.05);
+  border-radius: 12px;
+  max-width: 90%;
 }
 
 /* ── INPUT ROW ── */
