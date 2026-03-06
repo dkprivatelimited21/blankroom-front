@@ -14,6 +14,11 @@ class OmegleVideoChat {
     this.partnerId = null;
     this.reconnectAttempts = 0;
     this.maxReconnectAttempts = 3;
+    this.permissionsGranted = false;
+    this.searchInProgress = false;
+    this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
+    // STUN servers for NAT traversal
     this.iceServers = [
       { urls: 'stun:stun.l.google.com:19302' },
       { urls: 'stun:stun1.l.google.com:19302' },
@@ -49,13 +54,20 @@ class OmegleVideoChat {
   }
 
   async requestPermissions(videoEnabled = true, audioEnabled = true) {
+    // If permissions already granted and stream exists, just start searching
+    if (this.permissionsGranted && this.localStream && this.localStream.active) {
+      this.startSearch();
+      return true;
+    }
+    
     try {
-      // Request camera and microphone permissions
+      // Mobile-friendly constraints
       const constraints = {
         video: videoEnabled ? {
-          width: { ideal: 1280 },
-          height: { ideal: 720 },
-          facingMode: 'user'
+          width: { ideal: this.isMobile ? 640 : 1280 },
+          height: { ideal: this.isMobile ? 480 : 720 },
+          facingMode: 'user',
+          frameRate: { ideal: this.isMobile ? 24 : 30 }
         } : false,
         audio: audioEnabled ? {
           echoCancellation: true,
@@ -64,20 +76,38 @@ class OmegleVideoChat {
         } : false
       };
       
-      this.localStream = await navigator.mediaDevices.getUserMedia(constraints);
+      // Show loading state
+      this.updateVideoStatus('Requesting camera access...', 'searching');
       
-      // Display local video
+      this.localStream = await navigator.mediaDevices.getUserMedia(constraints);
+      this.permissionsGranted = true;
+      
+      // Display local video with proper orientation
       const localVideo = document.getElementById('local-video');
       if (localVideo) {
         localVideo.srcObject = this.localStream;
         localVideo.muted = true; // Mute local video to prevent echo
+        localVideo.setAttribute('playsinline', true);
+        localVideo.setAttribute('autoplay', true);
+        
+        // Apply mirror effect for natural self-view (but not for rear camera)
+        // Check if it's front camera (facingMode: 'user')
+        localVideo.style.transform = 'scaleX(-1)';
+        
+        // Handle video loaded
+        localVideo.onloadedmetadata = () => {
+          localVideo.play().catch(e => console.log('Autoplay prevented:', e));
+        };
       }
       
-      // Notify server that permissions are granted
-      this.socket.emit('find_video_stranger');
+      // Hide permission modal
+      this.hideVideoModal();
       
+      // Show video controls
       this.showVideoControls();
-      this.updateVideoStatus('Searching for video partner...', 'searching');
+      
+      // Start searching
+      this.startSearch();
       
       return true;
     } catch (err) {
@@ -87,33 +117,80 @@ class OmegleVideoChat {
     }
   }
 
+  startSearch() {
+    if (this.searchInProgress) return;
+    
+    this.searchInProgress = true;
+    this.updateVideoStatus('Searching for video partner...', 'searching');
+    this.showVideoModal('Looking for someone to chat with...', 'searching');
+    this.socket.emit('find_video_stranger');
+    
+    // Auto-hide modal after 3 seconds if still searching
+    setTimeout(() => {
+      if (this.searchInProgress && !this.inVideoChat) {
+        this.hideVideoModal();
+      }
+    }, 3000);
+  }
+
   handlePermissionRequest() {
-    this.showVideoModal('Requesting camera and microphone access...');
+    // Only show modal if permissions not already granted
+    if (!this.permissionsGranted) {
+      this.showVideoModal('Please allow camera and microphone access', 'info');
+    } else {
+      this.startSearch();
+    }
   }
 
   handleSearching(data) {
+    this.searchInProgress = true;
     this.updateVideoStatus(data.message, 'searching');
-    this.showVideoModal(data.message);
+    
+    // Only show modal if not already in video chat
+    if (!this.inVideoChat) {
+      this.showVideoModal(data.message, 'searching');
+      
+      // Auto-hide modal after 3 seconds
+      setTimeout(() => {
+        if (this.searchInProgress && !this.inVideoChat) {
+          this.hideVideoModal();
+        }
+      }, 3000);
+    }
   }
 
   handlePaired(data) {
+    this.searchInProgress = false;
     this.inVideoChat = true;
     this.isInitiator = data.initiator;
     this.partnerId = data.from;
     
     // Hide modal
     this.hideVideoModal();
+    this.hideReconnectModal();
     
     // Update UI
     this.updateVideoStatus('Connected!', 'connected');
     document.getElementById('video-controls').style.display = 'flex';
-    document.getElementById('remote-video-container').style.display = 'block';
+    
+    const remotePlaceholder = document.getElementById('remote-placeholder');
+    if (remotePlaceholder) {
+      remotePlaceholder.style.display = 'none';
+    }
+    
+    const remoteLoading = document.getElementById('remote-loading');
+    if (remoteLoading) {
+      remoteLoading.style.display = 'flex';
+    }
     
     // Create peer connection
     this.createPeer(this.isInitiator);
     
-    // Show notification
+    // Show notification (vibrate on mobile if supported)
     this.showNotification('Video partner connected!', 'success');
+    if (this.isMobile && navigator.vibrate) {
+      navigator.vibrate(200);
+    }
   }
 
   createPeer(isInitiator) {
@@ -124,7 +201,8 @@ class OmegleVideoChat {
     
     const Peer = window.SimplePeer;
     
-    this.peer = new Peer({
+    // Mobile-optimized peer configuration
+    const peerConfig = {
       initiator: isInitiator,
       stream: this.localStream,
       trickle: true,
@@ -132,10 +210,19 @@ class OmegleVideoChat {
         iceServers: this.iceServers
       },
       sdpTransform: (sdp) => {
-        // Force VP8 or H264 codec for better compatibility
-        return sdp.replace(/VP9|H265/g, '');
+        // Force VP8 for better mobile compatibility
+        let modifiedSdp = sdp.replace(/VP9|H265/g, 'VP8');
+        // Reduce bandwidth for mobile
+        if (this.isMobile) {
+          modifiedSdp = modifiedSdp.replace(/a=fmtp:\d+ (.*)/g, (match, params) => {
+            return `a=fmtp:${params};x-google-max-bitrate=512;x-google-min-bitrate=128`;
+          });
+        }
+        return modifiedSdp;
       }
-    });
+    };
+
+    this.peer = new Peer(peerConfig);
 
     this.peer.on('signal', (data) => {
       // Send signaling data to partner
@@ -155,10 +242,27 @@ class OmegleVideoChat {
       if (remoteVideo) {
         remoteVideo.srcObject = stream;
         remoteVideo.style.display = 'block';
+        remoteVideo.setAttribute('playsinline', true);
+        remoteVideo.setAttribute('autoplay', true);
+        
+        // Don't mirror remote video
+        remoteVideo.style.transform = 'scaleX(1)';
+        
+        remoteVideo.onloadedmetadata = () => {
+          remoteVideo.play().catch(e => console.log('Remote video autoplay prevented:', e));
+        };
       }
       
       // Hide loading indicator
-      document.getElementById('remote-loading').style.display = 'none';
+      const remoteLoading = document.getElementById('remote-loading');
+      if (remoteLoading) {
+        remoteLoading.style.display = 'none';
+      }
+      
+      const remotePlaceholder = document.getElementById('remote-placeholder');
+      if (remotePlaceholder) {
+        remotePlaceholder.style.display = 'none';
+      }
       
       this.showNotification('Partner video connected!', 'success');
     });
@@ -200,45 +304,128 @@ class OmegleVideoChat {
   }
 
   handleStrangerLeft(data) {
+    this.inVideoChat = false;
+    this.partnerId = null;
+    this.searchInProgress = false;
+    
     this.showNotification('Stranger disconnected', 'error');
     this.updateVideoStatus('Stranger left', 'disconnected');
-    this.cleanupVideoChat();
     
-    // Show reconnect option
+    // Clear remote video
+    const remoteVideo = document.getElementById('remote-video');
+    if (remoteVideo) {
+      remoteVideo.srcObject = null;
+      remoteVideo.style.display = 'none';
+    }
+    
+    const remotePlaceholder = document.getElementById('remote-placeholder');
+    if (remotePlaceholder) {
+      remotePlaceholder.style.display = 'flex';
+      remotePlaceholder.innerHTML = '⏳ Partner disconnected';
+    }
+    
+    const remoteLoading = document.getElementById('remote-loading');
+    if (remoteLoading) {
+      remoteLoading.style.display = 'none';
+    }
+    
+    document.getElementById('video-controls').style.display = 'none';
+    
+    // Clean up peer
+    if (this.peer) {
+      this.peer.destroy();
+      this.peer = null;
+    }
+    
+    // Show reconnect option (but don't ask for permissions again)
     this.showReconnectModal(data.message);
   }
 
   handleStrangerSkipped(data) {
+    this.inVideoChat = false;
+    this.partnerId = null;
+    this.searchInProgress = false;
+    
     this.showNotification('Stranger skipped', 'info');
     this.updateVideoStatus('Stranger skipped', 'disconnected');
-    this.cleanupVideoChat();
     
-    // Auto search for new partner after 2 seconds
+    // Clear remote video
+    const remoteVideo = document.getElementById('remote-video');
+    if (remoteVideo) {
+      remoteVideo.srcObject = null;
+      remoteVideo.style.display = 'none';
+    }
+    
+    const remotePlaceholder = document.getElementById('remote-placeholder');
+    if (remotePlaceholder) {
+      remotePlaceholder.style.display = 'flex';
+      remotePlaceholder.innerHTML = '⏳ Looking for next partner...';
+    }
+    
+    const remoteLoading = document.getElementById('remote-loading');
+    if (remoteLoading) {
+      remoteLoading.style.display = 'none';
+    }
+    
+    document.getElementById('video-controls').style.display = 'none';
+    
+    // Clean up peer
+    if (this.peer) {
+      this.peer.destroy();
+      this.peer = null;
+    }
+    
+    // Auto search for new partner after 2 seconds (without asking permissions again)
     setTimeout(() => {
-      this.startVideoSearch();
+      if (!this.inVideoChat && this.permissionsGranted) {
+        this.startSearch();
+      }
     }, 2000);
   }
 
   handleVideoEnded(data) {
+    this.inVideoChat = false;
+    this.partnerId = null;
+    this.searchInProgress = false;
+    
     this.showNotification(data.message, 'info');
-    this.updateVideoStatus('Video chat ended', 'ended');
-    this.cleanupVideoChat();
-    this.hideVideoContainer();
+    this.updateVideoStatus('Ready to start', 'disconnected');
+    this.cleanupVideoChat(false);
+    
+    document.getElementById('video-controls').style.display = 'none';
+    
+    const remotePlaceholder = document.getElementById('remote-placeholder');
+    if (remotePlaceholder) {
+      remotePlaceholder.style.display = 'flex';
+      remotePlaceholder.innerHTML = '⏳ Ready to start new chat';
+    }
   }
 
   handleReported(data) {
+    this.inVideoChat = false;
+    this.partnerId = null;
+    this.searchInProgress = false;
+    
     this.showNotification(data.message, 'warning');
-    this.cleanupVideoChat();
-    this.hideVideoContainer();
+    this.cleanupVideoChat(false);
+    document.getElementById('video-controls').style.display = 'none';
+    
+    const remotePlaceholder = document.getElementById('remote-placeholder');
+    if (remotePlaceholder) {
+      remotePlaceholder.style.display = 'flex';
+      remotePlaceholder.innerHTML = '⏳ Ready to start new chat';
+    }
   }
 
   handlePartnerToggleAudio(data) {
     const indicator = document.getElementById('partner-audio-indicator');
     if (indicator) {
       if (data.enabled) {
+        indicator.innerHTML = '🔊';
         indicator.classList.remove('muted');
         indicator.title = 'Partner audio on';
       } else {
+        indicator.innerHTML = '🔇';
         indicator.classList.add('muted');
         indicator.title = 'Partner audio off';
       }
@@ -269,15 +456,23 @@ class OmegleVideoChat {
     let message = 'Could not access camera or microphone.';
     
     if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-      message = 'Camera/Microphone access denied. Please allow permissions and try again.';
+      message = 'Camera/Microphone access denied. Please allow permissions in your browser settings.';
     } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
       message = 'No camera or microphone found. Please connect a device.';
     } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
       message = 'Camera or microphone is busy. Please close other apps using them.';
+    } else if (err.name === 'OverconstrainedError') {
+      message = 'Camera does not support required settings. Try a different camera.';
     }
     
     this.showVideoModal(message, 'error');
     this.updateVideoStatus(message, 'error');
+    this.permissionsGranted = false;
+    
+    // Hide modal after 5 seconds on error
+    setTimeout(() => {
+      this.hideVideoModal();
+    }, 5000);
   }
 
   handlePeerError(err) {
@@ -292,7 +487,8 @@ class OmegleVideoChat {
       }, 2000);
     } else {
       this.showNotification('Failed to reconnect. Please try again.', 'error');
-      this.cleanupVideoChat();
+      this.cleanupVideoChat(false);
+      this.showReconnectModal('Connection failed');
     }
   }
 
@@ -309,15 +505,21 @@ class OmegleVideoChat {
         // Update UI
         const btn = document.getElementById('btn-toggle-audio');
         if (btn) {
-          btn.innerHTML = this.audioEnabled ? '🔊 Audio' : '🔇 Audio';
+          btn.innerHTML = this.audioEnabled ? '🔊' : '🔇';
           btn.classList.toggle('muted', !this.audioEnabled);
+          btn.title = this.audioEnabled ? 'Mute Audio' : 'Unmute Audio';
         }
         
         // Show indicator
         const indicator = document.getElementById('self-audio-indicator');
         if (indicator) {
-          indicator.classList.toggle('muted', !this.audioEnabled);
-          indicator.title = this.audioEnabled ? 'Audio on' : 'Audio off';
+          if (this.audioEnabled) {
+            indicator.innerHTML = '🎤';
+            indicator.classList.remove('muted');
+          } else {
+            indicator.innerHTML = '🔇';
+            indicator.classList.add('muted');
+          }
         }
       }
     }
@@ -336,8 +538,9 @@ class OmegleVideoChat {
         // Update UI
         const btn = document.getElementById('btn-toggle-video');
         if (btn) {
-          btn.innerHTML = this.videoEnabled ? '📹 Video' : '🚫 Video';
+          btn.innerHTML = this.videoEnabled ? '📹' : '🚫';
           btn.classList.toggle('muted', !this.videoEnabled);
+          btn.title = this.videoEnabled ? 'Stop Video' : 'Start Video';
         }
         
         // Hide/show local video
@@ -351,7 +554,7 @@ class OmegleVideoChat {
           } else {
             localVideo.style.display = 'none';
             localPlaceholder.style.display = 'flex';
-            localPlaceholder.innerHTML = '🚫 Your video off';
+            localPlaceholder.innerHTML = '🚫 Video off';
           }
         }
       }
@@ -359,32 +562,36 @@ class OmegleVideoChat {
   }
 
   skipPartner() {
+    if (!this.inVideoChat) return;
+    
     this.showNotification('Skipping to next partner...', 'info');
     this.socket.emit('video_skip');
-    this.cleanupVideoChat(false); // Don't stop local stream
+    this.cleanupVideoChat(false);
+    
+    // Vibrate on mobile
+    if (this.isMobile && navigator.vibrate) {
+      navigator.vibrate(50);
+    }
   }
 
   reportPartner(reason) {
+    if (!this.inVideoChat) return;
+    
     this.socket.emit('video_report', { reason });
     this.showNotification('Reporting partner...', 'info');
-    this.cleanupVideoChat();
+    this.cleanupVideoChat(false);
   }
 
   endVideoChat() {
     this.socket.emit('video_end');
     this.showNotification('Video chat ended', 'info');
-    this.cleanupVideoChat();
-    this.hideVideoContainer();
+    this.cleanupVideoChat(false);
   }
 
-  startVideoSearch() {
-    this.showVideoContainer();
-    this.socket.emit('find_video_stranger');
-  }
-
-  cleanupVideoChat(stopLocalStream = true) {
+  cleanupVideoChat(stopLocalStream = false) {
     this.inVideoChat = false;
     this.partnerId = null;
+    this.searchInProgress = false;
     
     if (this.peer) {
       this.peer.destroy();
@@ -398,35 +605,36 @@ class OmegleVideoChat {
       remoteVideo.style.display = 'none';
     }
     
-    // Show remote placeholder
     const remotePlaceholder = document.getElementById('remote-placeholder');
     if (remotePlaceholder) {
       remotePlaceholder.style.display = 'flex';
-      remotePlaceholder.innerHTML = '⏳ Waiting for partner...';
+      remotePlaceholder.innerHTML = '⏳ Ready to start new chat';
     }
     
-    // Stop local stream if requested
+    const remoteLoading = document.getElementById('remote-loading');
+    if (remoteLoading) {
+      remoteLoading.style.display = 'none';
+    }
+    
+    // Stop local stream only when leaving video page
     if (stopLocalStream && this.localStream) {
-      this.localStream.getTracks().forEach(track => track.stop());
+      this.localStream.getTracks().forEach(track => {
+        track.stop();
+        track.enabled = false;
+      });
       this.localStream = null;
+      this.permissionsGranted = false;
     }
     
     // Hide controls
     document.getElementById('video-controls').style.display = 'none';
   }
 
-  showVideoContainer() {
-    document.getElementById('video-container').style.display = 'flex';
-    document.getElementById('remote-loading').style.display = 'flex';
-  }
-
-  hideVideoContainer() {
-    document.getElementById('video-container').style.display = 'none';
-    this.cleanupVideoChat();
-  }
-
   showVideoControls() {
-    document.getElementById('video-permission-modal').style.display = 'none';
+    const modal = document.getElementById('video-permission-modal');
+    if (modal) {
+      modal.style.display = 'none';
+    }
     document.getElementById('video-controls').style.display = 'flex';
   }
 
@@ -438,6 +646,15 @@ class OmegleVideoChat {
       messageEl.textContent = message;
       messageEl.className = type;
       modal.style.display = 'flex';
+      
+      // Auto-hide after 8 seconds for searching state
+      if (type === 'searching') {
+        setTimeout(() => {
+          if (this.searchInProgress && !this.inVideoChat) {
+            modal.style.display = 'none';
+          }
+        }, 8000);
+      }
     }
   }
 
