@@ -9,31 +9,318 @@
   <meta property="og:url" content="https://blankroom.vercel.app" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="BlankRoom" />
-  <meta name="twitter:description" content="Anonymous chat. No tracking. No logs. Just talk." />
-  <title>BlankRoom - Anonymous Chat</title>
+  <meta name="twitter:description" content="Anonymous video chat - Like Omegle but private" />
+  <title>BlankRoom - Anonymous Video Chat</title>
   <link rel="stylesheet" href="style.css" />
   <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
-  <!-- Google tag (gtag.js) - Minimal, no personal data -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXW222NL1Q"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-XXW222NL1Q', {
-      'anonymize_ip': true,
-      'allow_google_signals': false,
-      'allow_ad_personalization_signals': false
-    });
-  </script>
+  <script src="https://cdn.jsdelivr.net/npm/simple-peer@9.11.1/simplepeer.min.js"></script>
+  
   <style>
-    /* Instagram/Twitter in-app browser fixes */
-    body {
-      -webkit-tap-highlight-color: transparent;
-      -webkit-touch-callout: none;
-      text-size-adjust: 100%;
+    /* Video chat specific styles */
+    #page-video {
+      background: #000;
     }
-    input, button, textarea {
-      font-size: 16px; /* Prevents zoom on iOS */
+    
+    .video-container {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      background: #0a0a0a;
+      position: relative;
+    }
+    
+    .video-main {
+      flex: 1;
+      position: relative;
+      background: #1a1a1a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    #remote-video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      background: #000;
+      display: none;
+    }
+    
+    #remote-placeholder {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #1a0f13, #0c0608);
+      color: var(--text-muted);
+      font-size: 1.2rem;
+      text-align: center;
+      padding: 20px;
+    }
+    
+    #remote-loading {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      color: var(--rose);
+      display: none;
+    }
+    
+    .loading-spinner {
+      width: 50px;
+      height: 50px;
+      border: 3px solid var(--rose-dim);
+      border-top-color: var(--rose);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 10px;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    .video-local {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      width: 180px;
+      height: 135px;
+      border: 2px solid var(--rose);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+      z-index: 10;
+      background: #2a2a2a;
+    }
+    
+    #local-video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      background: #2a2a2a;
+      display: block;
+    }
+    
+    #local-placeholder {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,0.7);
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      text-align: center;
+      padding: 10px;
+    }
+    
+    .video-controls {
+      display: none;
+      justify-content: center;
+      gap: 15px;
+      padding: 20px;
+      background: rgba(0,0,0,0.8);
+      backdrop-filter: blur(10px);
+      border-top: 1px solid var(--border);
+      position: relative;
+      z-index: 20;
+    }
+    
+    .video-btn {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      border: none;
+      background: var(--surface2);
+      color: var(--text);
+      font-size: 20px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    
+    .video-btn:hover {
+      background: var(--surface3);
+      transform: scale(1.1);
+    }
+    
+    .video-btn.muted {
+      background: #dc3545;
+      color: white;
+    }
+    
+    .video-btn.danger {
+      background: #dc3545;
+    }
+    
+    .video-btn.danger:hover {
+      background: #c82333;
+    }
+    
+    .video-status {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      padding: 8px 16px;
+      background: rgba(0,0,0,0.6);
+      border-radius: 20px;
+      color: var(--text);
+      font-size: 0.9rem;
+      z-index: 30;
+      backdrop-filter: blur(5px);
+    }
+    
+    .video-status.searching {
+      color: #ffc107;
+    }
+    
+    .video-status.connected {
+      color: #28a745;
+    }
+    
+    .video-status.error {
+      color: #dc3545;
+    }
+    
+    .video-indicator {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      padding: 4px 8px;
+      background: rgba(0,0,0,0.6);
+      border-radius: 4px;
+      color: var(--text);
+      font-size: 0.8rem;
+      z-index: 40;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    
+    .video-indicator.muted::after {
+      content: '🔇';
+    }
+    
+    .video-permission-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.9);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      backdrop-filter: blur(5px);
+    }
+    
+    .video-permission-content {
+      background: var(--surface);
+      padding: 40px;
+      border-radius: 20px;
+      text-align: center;
+      max-width: 400px;
+      border: 1px solid var(--border);
+    }
+    
+    .video-permission-content h3 {
+      margin-bottom: 20px;
+      color: var(--rose);
+    }
+    
+    .video-permission-content p {
+      margin-bottom: 30px;
+      color: var(--text-muted);
+    }
+    
+    .video-permission-content .btn-group {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+    
+    .video-notification {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 12px 24px;
+      border-radius: 30px;
+      background: var(--surface);
+      color: var(--text);
+      font-size: 0.9rem;
+      z-index: 1001;
+      display: none;
+      animation: slideDown 0.3s ease;
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+    
+    .video-notification.success {
+      background: #28a745;
+      color: white;
+    }
+    
+    .video-notification.error {
+      background: #dc3545;
+      color: white;
+    }
+    
+    .video-notification.warning {
+      background: #ffc107;
+      color: black;
+    }
+    
+    .video-notification.info {
+      background: var(--rose);
+      color: white;
+    }
+    
+    .video-reconnect-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.9);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1002;
+    }
+    
+    @media (max-width: 768px) {
+      .video-local {
+        width: 120px;
+        height: 90px;
+        bottom: 10px;
+        right: 10px;
+      }
+      
+      .video-controls {
+        gap: 10px;
+        padding: 15px;
+      }
+      
+      .video-btn {
+        width: 45px;
+        height: 45px;
+        font-size: 18px;
+      }
     }
   </style>
 </head>
@@ -60,7 +347,8 @@
     </div>
 
     <div class="btn-group">
-      <button class="btn" id="btn-1v1">🎭 1v1 Chat</button>
+      <button class="btn" id="btn-1v1">💬 Text Chat</button>
+      <button class="btn" id="btn-video">🎥 Video Chat</button>
       <button class="btn" id="btn-group">👥 Group Chat</button>
     </div>
     
@@ -70,7 +358,7 @@
   </div>
 </div>
 
-<!-- 1v1 CHAT PAGE -->
+<!-- 1v1 TEXT CHAT PAGE -->
 <div id="page-1v1" class="page">
   <div class="chat-wrap">
     <div class="chat-header">
@@ -80,6 +368,9 @@
     </div>
 
     <div id="messages-1v1" class="messages-box"></div>
+    <div id="typing-indicator-1v1" class="typing-indicator" style="display:none;">
+      <span></span><span></span><span></span>
+    </div>
 
     <div class="input-row">
       <input type="text" id="input-1v1" placeholder="Type a message..." maxlength="500" autocomplete="off" disabled />
@@ -92,6 +383,69 @@
       <button class="btn btn-outline" id="btn-back-1v1">← Back</button>
     </div>
   </div>
+</div>
+
+<!-- VIDEO CHAT PAGE (OMEGELE STYLE) -->
+<div id="page-video" class="page">
+  <div class="video-container">
+    <div class="video-main">
+      <div id="video-status" class="video-status">Starting video...</div>
+      
+      <div class="video-indicator" id="partner-audio-indicator" title="Partner audio">🔊</div>
+      <div class="video-indicator" id="self-audio-indicator" title="Your audio">🎤</div>
+      
+      <video id="remote-video" autoplay playsinline></video>
+      
+      <div id="remote-placeholder">
+        ⏳ Waiting for partner...
+      </div>
+      
+      <div id="remote-loading">
+        <div class="loading-spinner"></div>
+        <div>Establishing connection...</div>
+      </div>
+      
+      <div class="video-local">
+        <video id="local-video" autoplay playsinline muted></video>
+        <div id="local-placeholder"></div>
+      </div>
+    </div>
+    
+    <div class="video-controls" id="video-controls">
+      <button class="video-btn" id="btn-toggle-audio" title="Toggle Audio">🔊</button>
+      <button class="video-btn" id="btn-toggle-video" title="Toggle Video">📹</button>
+      <button class="video-btn" id="btn-skip" title="Skip Partner">⏭️</button>
+      <button class="video-btn danger" id="btn-report" title="Report">🚩</button>
+      <button class="video-btn danger" id="btn-end-video" title="End Chat">📞</button>
+    </div>
+  </div>
+  
+  <!-- Permission Modal -->
+  <div class="video-permission-modal" id="video-permission-modal">
+    <div class="video-permission-content">
+      <h3>🎥 Camera & Microphone Access</h3>
+      <p id="video-modal-message">BlankRoom needs access to your camera and microphone for video chat.</p>
+      <div class="btn-group">
+        <button class="btn" id="btn-allow-video">Allow</button>
+        <button class="btn-outline" id="btn-cancel-video">Cancel</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Reconnect Modal -->
+  <div class="video-reconnect-modal" id="video-reconnect-modal">
+    <div class="video-permission-content">
+      <h3>📞 Connection Lost</h3>
+      <p id="reconnect-message">Your video chat was disconnected.</p>
+      <div class="btn-group">
+        <button class="btn" id="btn-reconnect">Find New Partner</button>
+        <button class="btn-outline" id="btn-back-from-video">Back to Menu</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Notifications -->
+  <div class="video-notification" id="video-notification"></div>
 </div>
 
 <!-- GROUP CHAT PAGE -->
@@ -109,11 +463,12 @@
         <input type="text" id="room-name-input" placeholder="Room name..." maxlength="30" autocomplete="off" />
         <button class="btn btn-sm" id="btn-join-room">Join</button>
       </div>
-      <div class="room-list-label">📌 Permanent rooms always active:</div>
+      <div class="room-list-label">📌 Available Rooms:</div>
       <div id="room-list"></div>
     </div>
 
     <div id="messages-group" class="messages-box" style="display:none;"></div>
+    <div id="group-typing-indicator" class="typing-indicator group" style="display:none;"></div>
 
     <div class="input-row" id="group-input-row" style="display:none;">
       <input type="text" id="input-group" placeholder="Type a message..." maxlength="500" autocomplete="off" />
@@ -136,6 +491,7 @@
       <option>Inappropriate content</option>
       <option>Harassment</option>
       <option>Spam</option>
+      <option>Explicit behavior</option>
       <option>Other</option>
     </select>
     <div class="btn-group" style="margin-top:12px;">
@@ -147,39 +503,103 @@
 
 <!-- CONFIGURATION -->
 <script>
-  // Auto-detect backend URL based on environment
-  (function() {
-    // For Vercel deployment, use your Render backend
-    // For local dev, use same origin
-    const isLocalhost = window.location.hostname === 'localhost' || 
-                        window.location.hostname === '127.0.0.1';
-    
-    window.BACKEND_URL = isLocalhost 
-      ? ''  // Same origin for local dev
-      : 'https://blankroom-server.onrender.com';  // Your Render backend
-      
-    console.log('Backend URL:', window.BACKEND_URL || '(same origin)');
-  })();
-</script>
-
-<!-- Socket.io loader with fallback -->
-<script>
-  (function() {
-    const backend = window.BACKEND_URL || '';
-    // Try CDN first (better for Instagram), fallback to backend
-    if (!backend) {
-      // Already loaded from CDN at the top
-      return;
-    }
-    
-    // If we have a backend URL, also try to load from there as fallback
-    const script = document.createElement('script');
-    script.src = backend + '/socket.io/socket.io.js';
-    script.async = true;
-    document.head.appendChild(script);
-  })();
+  window.BACKEND_URL = window.location.hostname === 'localhost' 
+    ? '' 
+    : 'https://blankroom-server.onrender.com';
 </script>
 
 <script src="client.js" defer></script>
+<script src="video-chat.js" defer></script>
+
+<script>
+  // Initialize video chat when page loads
+  document.addEventListener('DOMContentLoaded', () => {
+    const videoBtn = document.getElementById('btn-video');
+    const backFromVideo = document.getElementById('btn-back-from-video');
+    const allowVideo = document.getElementById('btn-allow-video');
+    const cancelVideo = document.getElementById('btn-cancel-video');
+    const reconnectBtn = document.getElementById('btn-reconnect');
+    
+    let videoChat = null;
+    
+    videoBtn.addEventListener('click', () => {
+      if (!document.getElementById('age-check').checked) {
+        alert('You must confirm you are 18 or older.');
+        return;
+      }
+      
+      const inputNick = document.getElementById('nickname-input').value;
+      nickname = getEffectiveNickname(inputNick);
+      socket.emit('set_nickname', { nickname });
+      
+      showPage('video');
+      chatMode = 'video';
+      
+      // Initialize video chat
+      videoChat = new OmegleVideoChat(socket);
+      
+      // Show permission modal
+      document.getElementById('video-permission-modal').style.display = 'flex';
+    });
+    
+    allowVideo.addEventListener('click', async () => {
+      if (videoChat) {
+        const success = await videoChat.requestPermissions(true, true);
+        if (success) {
+          document.getElementById('video-permission-modal').style.display = 'none';
+        }
+      }
+    });
+    
+    cancelVideo.addEventListener('click', () => {
+      document.getElementById('video-permission-modal').style.display = 'none';
+      showPage('landing');
+    });
+    
+    backFromVideo.addEventListener('click', () => {
+      document.getElementById('video-reconnect-modal').style.display = 'none';
+      if (videoChat) {
+        videoChat.cleanupVideoChat();
+      }
+      showPage('landing');
+    });
+    
+    reconnectBtn.addEventListener('click', () => {
+      document.getElementById('video-reconnect-modal').style.display = 'none';
+      if (videoChat) {
+        videoChat.startVideoSearch();
+      }
+    });
+    
+    // Video controls
+    document.getElementById('btn-toggle-audio').addEventListener('click', () => {
+      if (videoChat) videoChat.toggleAudio();
+    });
+    
+    document.getElementById('btn-toggle-video').addEventListener('click', () => {
+      if (videoChat) videoChat.toggleVideo();
+    });
+    
+    document.getElementById('btn-skip').addEventListener('click', () => {
+      if (videoChat) videoChat.skipPartner();
+    });
+    
+    document.getElementById('btn-report').addEventListener('click', () => {
+      if (videoChat) {
+        const reason = prompt('Reason for reporting?', 'Inappropriate behavior');
+        if (reason) {
+          videoChat.reportPartner(reason);
+        }
+      }
+    });
+    
+    document.getElementById('btn-end-video').addEventListener('click', () => {
+      if (videoChat) {
+        videoChat.endVideoChat();
+        showPage('landing');
+      }
+    });
+  });
+</script>
 </body>
 </html>
