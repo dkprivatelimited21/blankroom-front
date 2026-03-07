@@ -435,7 +435,7 @@ input[type=text]:focus{border-color:var(--rose);background:var(--surface2);box-s
 'use strict';
 
 // ── CONFIG ───────────────────────────────────────────────────────────────────
-const BACKEND = window.location.hostname === 'localhost' ? '' : (window.BACKEND_URL || '');
+const BACKEND = window.location.hostname === 'localhost' ? '' : (window.BACKEND_URL || 'https://blankroom-server.onrender.com');
 
 // ── SOCKET ───────────────────────────────────────────────────────────────────
 const socket = io(BACKEND, {
