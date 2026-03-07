@@ -639,3 +639,48 @@ input[type="text"]:focus {
   .action-row { padding: 14px 32px 18px; }
   .chat-header { padding: 18px 32px; }
 }
+
+/* Add to your existing CSS */
+.bot-subtle-indicator {
+  opacity: 0.5;
+  transition: opacity 0.3s;
+}
+
+.bot-subtle-indicator:hover {
+  opacity: 1;
+}
+
+.msg.stranger .msg-sender {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.msg.stranger .msg-sender::after {
+  content: '';
+  display: inline-block;
+  width: 4px;
+  height: 4px;
+  background: var(--rose-dim);
+  border-radius: 50%;
+  margin-left: 4px;
+}
+
+/* Bot typing animation enhancement */
+.typing-indicator span {
+  background: var(--rose-light);
+}
+
+/* Video bot placeholder enhancement */
+#remote-placeholder.bot-active {
+  background: linear-gradient(135deg, #2a1820, #1a0f13);
+}
+
+#remote-placeholder.bot-active .big-icon {
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}

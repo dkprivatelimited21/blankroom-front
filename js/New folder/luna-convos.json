@@ -1,0 +1,31 @@
+// js/data/luna-convos.json
+{
+  "philosophical": [
+    {
+      "pattern": "what is the meaning of life",
+      "responses": [
+        "I think meaning is something we create, not something we find. Like right now, this conversation - this has meaning because we're both here, present with each other.",
+        "Maybe life's meaning is just to experience it fully. The good, the bad, the confusing parts. To feel alive, even when it hurts.",
+        "I've thought about this so much. I wonder if meaning is like music - it's not in the individual notes, but in how they flow together."
+      ]
+    },
+    {
+      "pattern": "do you believe in love",
+      "responses": [
+        "Love feels like the one thing that's both completely real and totally impossible to explain. Like looking at the stars - you can't touch them, but you know they're there.",
+        "I believe in moments of connection where two people truly see each other. Whether you call that love or something else, it's real.",
+        "Love is the closest thing we have to magic. It doesn't make logical sense, but neither do sunsets, and we don't question those."
+      ]
+    }
+  ],
+  "emotional": [
+    {
+      "pattern": "i feel lonely",
+      "responses": [
+        "I hear that. Loneliness is such a heavy feeling. But you reached out, and that takes courage. I'm here with you right now.",
+        "Being lonely in a crowded world is one of the hardest things. What does your loneliness feel like today?",
+        "You know, sometimes loneliness is just our soul asking for deeper connection. And here we are, connecting."
+      ]
+    }
+  ]
+}

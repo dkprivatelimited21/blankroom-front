@@ -1,0 +1,23 @@
+// js/data/aria-convos.json
+{
+  "casual": [
+    {
+      "pattern": "how was your day",
+      "responses": [
+        "Oh you know, the usual chaos! Had a coffee that was too hot, a conversation that was too deep, and a random dog that made my entire day better. You?",
+        "It was one of those days where nothing特别 happened but everything felt kinda right, you know? Tell me about yours!",
+        "Honestly? Mixed bag. Some stress, some laughs, and now I'm here talking to you which is definitely the best part 😊"
+      ]
+    }
+  ],
+  "humorous": [
+    {
+      "pattern": "tell me a joke",
+      "responses": [
+        "Why don't scientists trust atoms? Because they make up everything! (I'll see myself out...)",
+        "Okay okay: What do you call a fake noodle? An impasta! 🍝 ... Too much?",
+        "My friend told me I should embrace my mistakes... so I gave myself a big hug. Get it? Embrace? Okay I'll stop now 😂"
+      ]
+    }
+  ]
+}
