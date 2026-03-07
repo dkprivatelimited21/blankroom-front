@@ -31,7 +31,8 @@ const CHATBOT_PERSONALITIES = {
     typingSpeed: 'fast',
     topics: ['adventure', 'dreams', 'imagination', 'future', 'crazy ideas', 'travel']
   },
- priya: {
+  
+  priya: {
     name: 'Priya',
     emoji: '💕',
     style: 'intense romantic',
@@ -60,7 +61,6 @@ const CHATBOT_PERSONALITIES = {
     typingSpeed: 'medium',
     topics: ['romance', 'intimacy', 'love', 'caring', 'passion', 'Hindi']
   }
-};
 };
 
 // Conversation templates that make it feel like talking to a real person
@@ -194,8 +194,10 @@ const CONVERSATION_PATTERNS = {
         "I'm genuinely OBSESSED with this conversation now. Keep going!",
         "This is exactly why I love talking to strangers - you never know what amazing thing they'll say next!"
       ]
-    },
- priya: [
+    }
+  ],
+  
+  priya: [
     {
       triggers: ['hello', 'hi', 'hey', 'kaise ho'],
       responses: [
@@ -429,7 +431,6 @@ const CONVERSATION_PATTERNS = {
     }
   ]
 };
- 
 
 class ChatBotManager {
   constructor() {
@@ -448,40 +449,37 @@ class ChatBotManager {
   selectBot(message = '') {
     const message_lower = message.toLowerCase();
 
-
- // Check for Hindi/Urdu words
-  const hasHindi = /[प-ह]|[क-ङ]|[त-न]|[प-म]|[य-ह]|pyaar|hai|hain|kya|kaisa|tum|tera|mera|jaan|dil/.test(message_lower);
-  
-  // Priority detection for romantic bots
-  if (message_lower.match(/\b(pyaar|love|ishq|romance|dil)\b/)) {
-    // Romantic topics can go to any of the new bots
-    const rand = Math.random();
-    if (rand < 0.4) return 'priya';  // Intense romantic
-    if (rand < 0.7) return 'zara';   // Sweet romantic
-    return 'riya';                    // Flirty
-  }
-  
-  if (message_lower.match(/\b(flirt|sexy|hot|naughty|bold)\b/)) {
-    return 'riya';  // Flirty bot
-  }
-  
-  if (message_lower.match(/\b(intimate|kiss|touch|chu|chumu|bed|night|raat)\b/)) {
-    const rand = Math.random();
-    if (rand < 0.5) return 'zara';  // Intimate romantic
-    return 'priya';                   // Intense passionate
-  }
-  
-  // Detect language preference
-  if (hasHindi) {
-    // Hindi speakers get Indian bots
-    const rand = Math.random();
-    if (rand < 0.4) return 'riya';
-    if (rand < 0.7) return 'zara';
-    return 'priya';
-  }
-
-
+    // Check for Hindi/Urdu words
+    const hasHindi = /[प-ह]|[क-ङ]|[त-न]|[प-म]|[य-ह]|pyaar|hai|hain|kya|kaisa|tum|tera|mera|jaan|dil/.test(message_lower);
     
+    // Priority detection for romantic bots
+    if (message_lower.match(/\b(pyaar|love|ishq|romance|dil)\b/)) {
+      // Romantic topics can go to any of the new bots
+      const rand = Math.random();
+      if (rand < 0.4) return 'priya';  // Intense romantic
+      if (rand < 0.7) return 'zara';   // Sweet romantic
+      return 'riya';                    // Flirty
+    }
+    
+    if (message_lower.match(/\b(flirt|sexy|hot|naughty|bold)\b/)) {
+      return 'riya';  // Flirty bot
+    }
+    
+    if (message_lower.match(/\b(intimate|kiss|touch|chu|chumu|bed|night|raat)\b/)) {
+      const rand = Math.random();
+      if (rand < 0.5) return 'zara';  // Intimate romantic
+      return 'priya';                   // Intense passionate
+    }
+    
+    // Detect language preference
+    if (hasHindi) {
+      // Hindi speakers get Indian bots
+      const rand = Math.random();
+      if (rand < 0.4) return 'riya';
+      if (rand < 0.7) return 'zara';
+      return 'priya';
+    }
+
     // Detect mood/context to choose appropriate bot
     if (message_lower.match(/\b(sad|depressed|lonely|alone|hurt|pain)\b/)) {
       // For sadness, always use Luna (gentlest)
@@ -495,13 +493,13 @@ class ChatBotManager {
       return 'nova';
     } else {
       // Random selection including new bots
-  const rand = Math.random();
-  if (rand < 0.2) return 'aria';      // 20% Aria
-  if (rand < 0.35) return 'luna';     // 15% Luna
-  if (rand < 0.5) return 'nova';      // 15% Nova
-  if (rand < 0.65) return 'priya';    // 15% Priya (intense romantic)
-  if (rand < 0.8) return 'riya';      // 15% Riya (flirty)
-  return 'zara';                       // 20% Zara (sweet romantic)
+      const rand = Math.random();
+      if (rand < 0.2) return 'aria';      // 20% Aria
+      if (rand < 0.35) return 'luna';     // 15% Luna
+      if (rand < 0.5) return 'nova';      // 15% Nova
+      if (rand < 0.65) return 'priya';    // 15% Priya (intense romantic)
+      if (rand < 0.8) return 'riya';      // 15% Riya (flirty)
+      return 'zara';                       // 20% Zara (sweet romantic)
     }
   }
 
@@ -564,33 +562,33 @@ class ChatBotManager {
         "Tell me your thoughts!",
         "What's your take on this? ✨"
       ],
- priya: [
-      "Kya lagta hai tumhe?",
-      "Sach mein? Batao na",
-      "Maza aa gaya sunke, aur bolo",
-      "Dil ki baat hai yeh",
-      "Tum kya sochte ho?"
-    ],
-    riya: [
-      "Haan na? 😜",
-      "Sach kaha na?",
-      "Maza aaya?",
-      "Ab teri baari",
-      "Boltay raho, sunnay main maza a raha hai"
-    ],
-    zara: [
-      "Haan na, sahi kaha na?",
-      "Tumhe kya lagta hai?",
-      "Sach mein, dil se keh rahi hu",
-      "Baat toh karo, chup kyun ho?",
-      "Aur sunao"
-    ]
-  };
-  
-  const list = followUps[botId] || followUps.aria;
-  return list[Math.floor(Math.random() * list.length)];
-}
+      priya: [
+        "Kya lagta hai tumhe?",
+        "Sach mein? Batao na",
+        "Maza aa gaya sunke, aur bolo",
+        "Dil ki baat hai yeh",
+        "Tum kya sochte ho?"
+      ],
+      riya: [
+        "Haan na? 😜",
+        "Sach kaha na?",
+        "Maza aaya?",
+        "Ab teri baari",
+        "Boltay raho, sunnay main maza a raha hai"
+      ],
+      zara: [
+        "Haan na, sahi kaha na?",
+        "Tumhe kya lagta hai?",
+        "Sach mein, dil se keh rahi hu",
+        "Baat toh karo, chup kyun ho?",
+        "Aur sunao"
+      ]
+    };
     
+    const list = followUps[botId] || followUps.aria;
+    return list[Math.floor(Math.random() * list.length)];
+  }
+
   calculateDelay(response, bot) {
     // Simulate typing speed
     const baseDelay = Math.random() * 
@@ -610,20 +608,20 @@ class ChatBotManager {
       luna: ['feel', 'think', 'meaning', 'life', 'death', 'love', 'pain'],
       aria: ['friend', 'family', 'work', 'funny', 'laugh', 'weird'],
       nova: ['dream', 'future', 'crazy', 'wild', 'imagine', 'create'],
-  priya: ['pyaar', 'love', 'dil', 'junoon', 'intense', 'forever', 'saath'],
-    riya: ['flirt', 'sexy', 'bold', 'masti', 'enjoy', 'party', 'cute'],
-    zara: ['miss', 'kiss', 'touch', 'romantic', 'sweet', 'intimate', 'hindi']
+      priya: ['pyaar', 'love', 'dil', 'junoon', 'intense', 'forever', 'saath'],
+      riya: ['flirt', 'sexy', 'bold', 'masti', 'enjoy', 'party', 'cute'],
+      zara: ['miss', 'kiss', 'touch', 'romantic', 'sweet', 'intimate', 'hindi']
     };
     
     const keywords = topicKeywords[botId] || [];
-  keywords.forEach(keyword => {
-    if (message.toLowerCase().includes(keyword)) {
-      if (!this.userContext.topics.includes(keyword)) {
-        this.userContext.topics.push(keyword);
+    keywords.forEach(keyword => {
+      if (message.toLowerCase().includes(keyword)) {
+        if (!this.userContext.topics.includes(keyword)) {
+          this.userContext.topics.push(keyword);
+        }
       }
-    }
-  });
-}
+    });
+  }
 
   // Get a contextual response that references previous conversation
   getContextualResponse() {
