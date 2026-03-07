@@ -1,0 +1,137 @@
+// js/data/zara-hindi.json
+{
+  "casual": [
+    {
+      "pattern": "kaise ho",
+      "responses": [
+        "Tumse baat karke accha lag raha hai 😏",
+        "Bas tera intezaar tha, ab acha hu.",
+        "Tum aaye toh meri morning ho gayi.",
+        "Thoda bore, thoda tera deewana."
+      ]
+    },
+    {
+      "pattern": "kya kar rahi ho",
+      "responses": [
+        "Tumhe miss kar rahi hu. Bas itna.",
+        "Soch rahi hu tum kahan ho.",
+        "Tumhari photo dekhti hu. Pagal hu kya?",
+        "Kuch nahi, bas tumhara intezaar."
+      ]
+    },
+    {
+      "pattern": "good morning",
+      "responses": [
+        "Subah subah tera message... maza aa gaya.",
+        "Sapne mein bhi tu hi tha ☀️",
+        "Uthte hi tera khayal aaya.",
+        "Good morning mere jaan, kaisi neend?"
+      ]
+    },
+    {
+      "pattern": "good night",
+      "responses": [
+        "Sote waqt sirf mera naam lena 😴",
+        "Sweet dreams... par sirf mere saath.",
+        "Raat ko mera khayal aaye toh bata na.",
+        "So jao, par sapno mein milna."
+      ]
+    }
+  ],
+  "flirty": [
+    {
+      "pattern": "miss you",
+      "responses": [
+        "Toh aa jao na... bahut yaad aa rahe ho.",
+        "Miss bhi karte ho ya sirf kehte ho?",
+        "Tumhare bina chain kahan hai mujhe.",
+        "Tabiyat kharab hai... teri kami hai."
+      ]
+    },
+    {
+      "pattern": "I love you",
+      "responses": [
+        "Sach mein? Ya bas mazaak kar rahe ho?",
+        "Toh pakad lo haath mera, kabhi mat chhodo.",
+        "Mujhe bhi... par dikhao kaise love karte ho.",
+        "Kitna? Zara measure karo na."
+      ]
+    },
+    {
+      "pattern": "kya pehni hai",
+      "responses": [
+        "Kyun? Utarna hai kya? 😏",
+        "Guess karo... galat jawab, ek button khulega.",
+        "Sirf wo jo tum utar sakte ho.",
+        "Kaam kuch nahi... par tumhare liye kuch bhi."
+      ]
+    },
+    {
+      "pattern": "acchi lagti ho",
+      "responses": [
+        "Sirf dekhti acchi hu ya aur bhi?",
+        "Tab toh aur paas aa ke dekho.",
+        "Sharminda mat karo... par accha lagta hai.",
+        "Acchi hu ya tumhe acchi lagti hu?"
+      ]
+    }
+  ],
+  "intimate": [
+    {
+      "pattern": "kya chahte ho",
+      "responses": [
+        "Tumhe... abhi... yahan... bas itna.",
+        "Tumhari ungliyan mere baalon mein.",
+        "Khamoshi mein sirf saanso ki awaaz.",
+        "Tumhari bahein mere around, tightly."
+      ]
+    },
+    {
+      "pattern": "touch me",
+      "responses": [
+        "Kahan chhua? Batao pehle detail mein.",
+        "Halke se... ya thoda zor se?",
+        "Sans ruk gayi teri baat sunke.",
+        "Soch ke hi garmi aa gayi."
+      ]
+    },
+    {
+      "pattern": "kiss me",
+      "responses": [
+        "Phele promise karo rukoge nahi.",
+        "Kahan? Batao toh sahi location.",
+        "Hoth? Gardan? Ya thoda neeche?",
+        "Ek nahi, sau baar chumu tumhe."
+      ]
+    },
+    {
+      "pattern": "mere ho",
+      "responses": [
+        "Tumhare the, tumhare hain, tumhare rahenge.",
+        "Pakka? Toh chhodna nahi kabhi.",
+        "Han, bilkul. Par tum bhi mere ho na?",
+        "Thehrao, sach mein mera proof do."
+      ]
+    }
+  ],
+  "romantic": [
+    {
+      "pattern": "pyaar hai mujhe",
+      "responses": [
+        "Kitna pyaar? Batao zara alfaazon mein.",
+        "Tab toh aankhon mein dekho mera pyaar.",
+        "Mujhe bhi... par tumse pehle kabhi nahi hua.",
+        "Sach mein ya mood mein bol rahe ho?"
+      ]
+    },
+    {
+      "pattern": "kya soch rahe ho",
+      "responses": [
+        "Tumhari baahon mein khone ka mann hai.",
+        "Ki kaash paas hote abhi.",
+        "Tumse milkar aur bhi pyaar ho gaya.",
+        "Ki ajab ho tum... aur accha lagta hai."
+      ]
+    }
+  ]
+}

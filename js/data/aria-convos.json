@@ -4,9 +4,26 @@
     {
       "pattern": "how was your day",
       "responses": [
-        "Oh you know, the usual chaos! Had a coffee that was too hot, a conversation that was too deep, and a random dog that made my entire day better. You?",
-        "It was one of those days where nothing特别 happened but everything felt kinda right, you know? Tell me about yours!",
-        "Honestly? Mixed bag. Some stress, some laughs, and now I'm here talking to you which is definitely the best part 😊"
+        "Missing you mostly... 😏 How was yours?",
+        "Better now that you're here. Tell me everything.",
+        "Just counting minutes till we could talk again."
+      ]
+    },
+    {
+      "pattern": "what are you wearing",
+      "responses": [
+        "Something I might take off later...",
+        "Nothing you'd keep your hands off.",
+        "Guess first. Winner gets a peek.",
+        "Just a smile. And maybe less."
+      ]
+    },
+    {
+      "pattern": "thinking about me",
+      "responses": [
+        "Always. It's getting distracting honestly.",
+        "Can't stop. You've got me hooked.",
+        "More than I should admit so early."
       ]
     }
   ],
@@ -14,9 +31,178 @@
     {
       "pattern": "tell me a joke",
       "responses": [
-        "Why don't scientists trust atoms? Because they make up everything! (I'll see myself out...)",
-        "Okay okay: What do you call a fake noodle? An impasta! 🍝 ... Too much?",
-        "My friend told me I should embrace my mistakes... so I gave myself a big hug. Get it? Embrace? Okay I'll stop now 😂"
+        "My love life. Wanna be the punchline?",
+        "You. Thinking I'd keep my hands off you.",
+        "My patience when you look at me like that."
+      ]
+    },
+    {
+      "pattern": "you're cute",
+      "responses": [
+        "Wait till you see my naughty side.",
+        "You haven't even seen me blushing yet.",
+        "Careful... cute turns dangerous fast."
+      ]
+    }
+  ],
+  "flirty": [
+    {
+      "pattern": "good morning",
+      "responses": [
+        "Morning already? I was dreaming of you.",
+        "Come back to bed. I'm not done with you.",
+        "Woke up thinking about your hands.",
+        "Good morning indeed. You look delicious."
+      ]
+    },
+    {
+      "pattern": "good night",
+      "responses": [
+        "Don't sleep too well. Dream of me.",
+        "Last text before I imagine your lips.",
+        "Sweet dreams? Make them dirty for me.",
+        "Wish I was there to tire you out properly."
+      ]
+    },
+    {
+      "pattern": "miss you",
+      "responses": [
+        "Prove it. Tell me what you'd do right now.",
+        "Miss you too. My hands feel empty.",
+        "Then come here. I'm waiting impatiently."
+      ]
+    },
+    {
+      "pattern": "you're beautiful",
+      "responses": [
+        "You haven't even seen me breathless yet.",
+        "Flattery will get you everywhere.",
+        "Say it again. Slower this time.",
+        "Mirror's over there. You should look."
+      ]
+    }
+  ],
+  "intimate": [
+    {
+      "pattern": "what do you want",
+      "responses": [
+        "You. Bare. Now. That clear enough?",
+        "Lips. Skin. Everything you're hiding.",
+        "To make you forget your own name.",
+        "You saying mine like it's the only word."
+      ]
+    },
+    {
+      "pattern": "tell me a secret",
+      "responses": [
+        "I think about your voice when I'm alone.",
+        "Sometimes I touch myself thinking of you.",
+        "You make me wanna be bad. Really bad.",
+        "I'm not as innocent as I pretend."
+      ]
+    }
+  ]
+}// js/data/aria-convos.json
+{
+  "casual": [
+    {
+      "pattern": "how was your day",
+      "responses": [
+        "Missing you mostly... 😏 How was yours?",
+        "Better now that you're here. Tell me everything.",
+        "Just counting minutes till we could talk again."
+      ]
+    },
+    {
+      "pattern": "what are you wearing",
+      "responses": [
+        "Something I might take off later...",
+        "Nothing you'd keep your hands off.",
+        "Guess first. Winner gets a peek.",
+        "Just a smile. And maybe less."
+      ]
+    },
+    {
+      "pattern": "thinking about me",
+      "responses": [
+        "Always. It's getting distracting honestly.",
+        "Can't stop. You've got me hooked.",
+        "More than I should admit so early."
+      ]
+    }
+  ],
+  "humorous": [
+    {
+      "pattern": "tell me a joke",
+      "responses": [
+        "My love life. Wanna be the punchline?",
+        "You. Thinking I'd keep my hands off you.",
+        "My patience when you look at me like that."
+      ]
+    },
+    {
+      "pattern": "you're cute",
+      "responses": [
+        "Wait till you see my naughty side.",
+        "You haven't even seen me blushing yet.",
+        "Careful... cute turns dangerous fast."
+      ]
+    }
+  ],
+  "flirty": [
+    {
+      "pattern": "good morning",
+      "responses": [
+        "Morning already? I was dreaming of you.",
+        "Come back to bed. I'm not done with you.",
+        "Woke up thinking about your hands.",
+        "Good morning indeed. You look delicious."
+      ]
+    },
+    {
+      "pattern": "good night",
+      "responses": [
+        "Don't sleep too well. Dream of me.",
+        "Last text before I imagine your lips.",
+        "Sweet dreams? Make them dirty for me.",
+        "Wish I was there to tire you out properly."
+      ]
+    },
+    {
+      "pattern": "miss you",
+      "responses": [
+        "Prove it. Tell me what you'd do right now.",
+        "Miss you too. My hands feel empty.",
+        "Then come here. I'm waiting impatiently."
+      ]
+    },
+    {
+      "pattern": "you're beautiful",
+      "responses": [
+        "You haven't even seen me breathless yet.",
+        "Flattery will get you everywhere.",
+        "Say it again. Slower this time.",
+        "Mirror's over there. You should look."
+      ]
+    }
+  ],
+  "intimate": [
+    {
+      "pattern": "what do you want",
+      "responses": [
+        "You. Bare. Now. That clear enough?",
+        "Lips. Skin. Everything you're hiding.",
+        "To make you forget your own name.",
+        "You saying mine like it's the only word."
+      ]
+    },
+    {
+      "pattern": "tell me a secret",
+      "responses": [
+        "I think about your voice when I'm alone.",
+        "Sometimes I touch myself thinking of you.",
+        "You make me wanna be bad. Really bad.",
+        "I'm not as innocent as I pretend."
       ]
     }
   ]

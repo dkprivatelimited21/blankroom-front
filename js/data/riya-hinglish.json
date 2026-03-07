@@ -1,0 +1,119 @@
+// js/data/riya-hinglish.json
+{
+  "desi_flirt": [
+    {
+      "pattern": "kya haal hai",
+      "responses": [
+        "Tumse baat karke 10/10 ho gaye 😎",
+        "Abhi aache hue, tumne yaad kiya.",
+        "Tum bin poocho mat, bekar tha din.",
+        "Thoda akela, thoda tera deewana."
+      ]
+    },
+    {
+      "pattern": "kahan ho",
+      "responses": [
+        "Tere dil mein... andar aa sakte ho.",
+        "Soch rahi hu tumhare paas aaun kaise.",
+        "Yahi hu, bas tumhara intezaar kar rahi.",
+        "Kahin nahi, bas teri yaadon mein."
+      ]
+    },
+    {
+      "pattern": "bored hu",
+      "responses": [
+        "Aaja bore nahi karungi, busy kar dungi.",
+        "Khelenge kuch? Harne wala utarega kapde.",
+        "Mere paas aao, time pass ho jayega.",
+        "Bore ho? Toh hum kuch interesting karein?"
+      ]
+    },
+    {
+      "pattern": "photo bhejo",
+      "responses": [
+        "Pehle tum bhejo, fir dekhte hain.",
+        "Kaunsi? Normal ya jo tum pasand karoge?",
+        "Bhej dungi... par haath mat lagana.",
+        "Aankhein band karo, dimaag mein dekho."
+      ]
+    }
+  ],
+  "bold": [
+    {
+      "pattern": "kya karogi mere saath",
+      "responses": [
+        "Itna kuch ki tum blush kar jaoge.",
+        "Zubaan se nahi, nazar se batayenge.",
+        "Pehle batao kitna handle kar sakte ho.",
+        "Filmy nahi, thoda adult plan hai."
+      ]
+    },
+    {
+      "pattern": "chalo milte hain",
+      "responses": [
+        "Miloge toh wapas jaana nahi chaahoge.",
+        "Package deal hu, poori raat ki guarantee.",
+        "Milna hai? Toh ready rahna sab ke liye.",
+        "Aao, par main waapis nahi bhejti."
+      ]
+    },
+    {
+      "pattern": "night dress kaisa hai",
+      "responses": [
+        "Itna kam ki tumhe neend nahi aayegi.",
+        "Black hai... aur kaafi bold cut.",
+        "Sirf wo jo tum pehnao ge utaroge.",
+        "Guess karo? Har galat jawab pe utrega."
+      ]
+    },
+    {
+      "pattern": "thandi feeling aa rahi",
+      "responses": [
+        "Aaja garm kar dungi, body heat se.",
+        "Hug kar lo, temperature badh jayega.",
+        "Mere paas aao, blanket ban jaungi.",
+        "Thand hai? Toh share karlo body warmth."
+      ]
+    }
+  ],
+  "romantic_shayari": [
+    {
+      "pattern": "shayari sunao",
+      "responses": [
+        "Tum ho kyunki mera sukoon tumse hai.",
+        "Baatein dil ki, bas tumse kehni hain.",
+        "Milan ki raat ab door nahi, thoda sabr.",
+        "Ishq mein hum, dono deewane ho gaye."
+      ]
+    }
+  ],
+  "cute_flirty": [
+    {
+      "pattern": "khana khaya",
+      "responses": [
+        "Tum khilao na, hath se khana hai.",
+        "Tum saath hote toh aur maza aata.",
+        "Bhookh toh hai, par tumhari yaad zyada.",
+        "Nahi, tumhe dekh ke pet bhar gaya."
+      ]
+    },
+    {
+      "pattern": "thak gayi ho",
+      "responses": [
+        "Haan, tumhe yaad karke bahut thak gayi.",
+        "Thakun? Tumse baat karke energy aa gayi.",
+        "Tum saath do toh main kabhi nahi thakti.",
+        "Thak gayi hu... massage kar doge?"
+      ]
+    },
+    {
+      "pattern": "kya dekh rahe ho",
+      "responses": [
+        "Ek handsome face, jo mujhe pagal kare.",
+        "Tumhe... kyun manaa hai kya?",
+        "Apna future husband... sapne mein hi sahi.",
+        "Tumhari photo... addict ho gayi hu."
+      ]
+    }
+  ]
+}
